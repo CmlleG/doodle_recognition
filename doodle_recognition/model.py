@@ -34,8 +34,8 @@ def init_model():
     model.add(layers.MaxPool2D(pool_size=(2,2)))
 
     model.add(layers.Flatten())
-    model.add(layers.Dense(10, activation='relu'))
-    model.add(layers.Dense(3, activation='softmax'))
+    model.add(layers.Dense(100, activation='relu'))
+    model.add(layers.Dense(100, activation='softmax'))
 
     model.summary()
 

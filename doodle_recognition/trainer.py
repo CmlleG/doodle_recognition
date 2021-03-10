@@ -49,12 +49,12 @@ class Trainer(object):
         print(self.X.shape)
         print(self.y.shape)
 
-        prepro_y = Pipeline([
-            ('prepro_y', To_Cat())])
+        # prepro_y = Pipeline([
+        #     ('prepro_y', To_Cat())])
 
-        """   preproc_pipe = ColumnTransformer([
-            ('preprocess_X', prepro_X, range(0,784))
-            ]) """
+        # """   preproc_pipe = ColumnTransformer([
+        #     ('preprocess_X', prepro_X, range(0,784))
+        #     ]) """
 
         self.pipeline = Pipeline([
             ('prepro', prepro_X),
@@ -104,9 +104,9 @@ if __name__ == "__main__":
 
     X, y, class_names = create_df(CLASSES)
     y = to_categorical(y, num_classes=NUM_CLASSES)
-    print("dans le trainer")
-    print(X.shape)
-    print(y.shape)
+    # print("dans le trainer")
+    # print(X.shape)
+    # print(y.shape)
     # X_train, y_train, X_test, y_test, X_val, y_val = create_train_test_val(X,y)
     # print('train')
     # print(X_train.shape)
@@ -119,9 +119,9 @@ if __name__ == "__main__":
     # print(y_val.shape)
 
     trainer = Trainer(X=X ,y=y)
-    print("dans le trainer, apres trainer")
-    print(X.shape)
-    print(y.shape)
+    # print("dans le trainer, apres trainer")
+    # print(X.shape)
+    # print(y.shape)
     trainer.run()
     trainer.save_model()
 

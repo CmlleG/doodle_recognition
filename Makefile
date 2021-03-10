@@ -46,12 +46,12 @@ FRAMEWORK=scikit-learn
 RUNTIME_VERSION=2.2
 ##### Package params  - - - - - - - - - - - - - - - - - - -
 
-PACKAGE_NAME=TaxiFareModel
+PACKAGE_NAME=doodle_recognition
 FILENAME=trainer
 
 ##### Job - - - - - - - - - - - - - - - - - - - - - - - - -
 
-JOB_NAME=taxi_fare_training_pipeline_$(shell date +'%Y%m%d_%H%M%S')
+JOB_NAME=doodle_recognition_training_pipeline_$(shell date +'%Y%m%d_%H%M%S')
 
 
 run_locally:

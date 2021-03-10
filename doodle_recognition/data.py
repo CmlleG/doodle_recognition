@@ -20,7 +20,7 @@ from sklearn.model_selection import train_test_split
 from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, NUM_CLASSES, URL_FOLDER
 
 
-def create_df(CLASSES, max_items_per_class= 40):
+def create_df(CLASSES, max_items_per_class= 80000):
     all_files = []
     url = 'https://storage.googleapis.com/quickdraw_dataset/full/numpy_bitmap/'
     for c in CLASSES:
@@ -68,27 +68,27 @@ class Preproc_df():
         print(X.shape)
         return X
 
-class To_Cat():
-    # def __init__(self, num_classes=NUM_CLASSES):
-    #     self.NUM_CLASSES = num_classes
-    #     print(self)
+# class To_Cat():
+#     # def __init__(self, num_classes=NUM_CLASSES):
+#     #     self.NUM_CLASSES = num_classes
+#     #     print(self)
 
-    def fit(self, X, y):
-        print("dans le fit TO_CAT:")
-        print(y.shape)
-        self.NUM_CLASSES = NUM_CLASSES
-        print(self.NUM_CLASSES)
+#     def fit(self, X, y):
+#         print("dans le fit TO_CAT:")
+#         print(y.shape)
+#         self.NUM_CLASSES = NUM_CLASSES
+#         print(self.NUM_CLASSES)
 
-        print("reshape in transform TO_CAT _ before to_cat:")
-        print(y.shape)
-        self.y = to_categorical(y, num_classes=self.NUM_CLASSES)
-        print("reshape in transform TO_CAT:")
-        print(self.y.shape)
+#         print("reshape in transform TO_CAT _ before to_cat:")
+#         print(y.shape)
+#         self.y = to_categorical(y, num_classes=self.NUM_CLASSES)
+#         print("reshape in transform TO_CAT:")
+#         print(self.y.shape)
 
-        return self
+#         return self
 
-    def transform(self, X, y=None):
-        return self.y
+#     def transform(self, X, y=None):
+#         return self.y
 
 def create_train_test_val(X,y):
     #separate into training and testing
