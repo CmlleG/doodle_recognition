@@ -3,21 +3,21 @@ pip>=9
 setuptools>=26
 twine
 wheel>=0.29
-google.cloud
+
 pickle
 
 # data science
-numpy
-pandas
+numpy>=1.18.5
+pandas>=1.2.0
 scikit-learn
-tensorflow
+tensorflow>=2.4.1
 tensorflow.keras.layers
 tensorflow.keras.utils
 tensorflow.keras.models
-sklearn.model_selection
-sklearn.pipeline
+sklearn
 tensorflow.keras.callbacks
-sklearn.compose
+scikit-learn >=0.22
+Keras-Preprocessing>=1.1.2
 
 # tests/linter
 black
@@ -37,9 +37,5 @@ six>=1.14
 joblib
 memoized-property
 termcolor
-requests
+requests>=2.25.1
 
-# utilities
-#urllib.request
-os
-#glob

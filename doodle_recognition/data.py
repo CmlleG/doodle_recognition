@@ -1,5 +1,3 @@
-#import glob
-#import urllib.request
 
 import requests
 import io
