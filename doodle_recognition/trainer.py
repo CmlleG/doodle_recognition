@@ -7,7 +7,8 @@ import os
 
 import numpy as np
 import pandas as pd
-import joblib
+from joblib import dump
+import pickle as pkl
 
 from sklearn.pipeline import Pipeline
 from google.cloud import storage
@@ -20,6 +21,7 @@ from tensorflow.keras import layers
 from tensorflow import keras
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping
+from sklearn.compose import ColumnTransformer
 
 from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, NUM_CLASSES, STORAGE_LOCATION, URL_FOLDER
 from doodle_recognition.data import create_df, Preproc_df, To_Cat, create_train_test_val
@@ -50,13 +52,12 @@ class Trainer(object):
         prepro_y = Pipeline([
             ('prepro_y', To_Cat())])
 
-        preproc_pipe = Pipeline([
-            ('preprocess_X', prepro_X),
-            ('to_cat', prepro_y)
-            ])
+        """   preproc_pipe = ColumnTransformer([
+            ('preprocess_X', prepro_X, range(0,784))
+            ]) """
 
         self.pipeline = Pipeline([
-            ('prepro', preproc_pipe),
+            ('prepro', prepro_X),
             ('model', init_model())
         ])
 
@@ -84,8 +85,8 @@ class Trainer(object):
 
     def save_model(self):
         """Save the model into a .joblib format"""
-        joblib.dump(self.pipeline, 'model.joblib')
-        print(colored("model.joblib saved locally", "green"))
+        print("model.joblib saved locally")
+        dump(self.pipeline, 'model.joblib')
 
     def upload_model_to_gcp(self):
 
@@ -102,6 +103,7 @@ class Trainer(object):
 if __name__ == "__main__":
 
     X, y, class_names = create_df(CLASSES)
+    y = to_categorical(y, num_classes=NUM_CLASSES)
     print("dans le trainer")
     print(X.shape)
     print(y.shape)

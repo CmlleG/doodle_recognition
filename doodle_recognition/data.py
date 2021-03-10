@@ -88,7 +88,7 @@ class To_Cat():
         return self
 
     def transform(self, X, y=None):
-        return X
+        return self.y
 
 def create_train_test_val(X,y):
     #separate into training and testing

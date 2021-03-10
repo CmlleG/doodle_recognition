@@ -28,13 +28,13 @@ from doodle_recognition.data import create_df, Preproc_df, To_Cat, create_train_
 def init_model():
     model = Sequential()
     model.add(layers.Conv2D(16, (4,4), strides=(2,2), input_shape=(28, 28, 1), padding='same'))
-    # model.add(layers.MaxPool2D(pool_size=(3,3)))
+    model.add(layers.MaxPool2D(pool_size=(3,3)))
 
-    # model.add(layers.Conv2D(32, (3,3), strides=(2,2), padding='same'))
-    # model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Conv2D(32, (3,3), strides=(2,2), padding='same'))
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
 
-    # model.add(layers.Flatten())
-    # model.add(layers.Dense(10, activation='relu'))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(10, activation='relu'))
     model.add(layers.Dense(3, activation='softmax'))
 
     model.summary()
