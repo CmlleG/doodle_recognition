@@ -7,14 +7,20 @@ wheel>=0.29
 # data science
 numpy
 pandas
+tensorflow
+# tensorflow.keras.layers
+# tensorflow.keras.utils
+# tensorflow.keras.models
+# tensorflow.keras.callbacks
 scikit-learn
+Keras
 
 # tests/linter
-black
-coverage
-flake8
-pytest
-yapf
+# black
+# coverage
+# flake8
+# pytest
+# yapf
 
 # API
 gcsfs
@@ -27,3 +33,5 @@ six>=1.14
 joblib
 memoized-property
 termcolor
+requests
+
