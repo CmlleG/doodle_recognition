@@ -28,10 +28,6 @@ from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, NUM_C
 from doodle_recognition.data import create_df, Preproc_df, create_train_test_val
 from doodle_recognition.model import init_model, evaluate, save_model, upload_model_to_gcp
 
-import types
-import tempfile
-import keras.models
-
 class Trainer(object):
     def __init__(self, X_train, y_train, X_test, y_test, X_val, y_val, es):
 
