@@ -7,6 +7,10 @@ import pandas as pd
 from joblib import dump
 import pickle as pkl
 
+import types
+import tempfile
+import keras.models
+
 from sklearn.pipeline import Pipeline
 from google.cloud import storage
 
@@ -82,6 +86,11 @@ class Trainer(object):
     def save_model(self):
         """Save the model into a .joblib format"""
         print("model.joblib saved locally")
+        #tf.keras.models.save_model(self.pipeline,'saved_model/my_model',save_format='h5')
+        #self.pipeline.named_steps['model'].model.save('model.h5',save_format='h5')
+        #self.pipeline.named_steps['estimator'].model = None
+        #joblib.dump(self.pipeline, 'model.joblib')
+        #tf.keras.models.save_model(self.pipeline,'saved_model/my_model',save_format='h5')
         dump(self.pipeline, 'model.joblib')
 
     def upload_model_to_gcp(self):
@@ -96,8 +105,27 @@ class Trainer(object):
 
         print("uploaded model.joblib to gcp cloud storage under \n => {}".format(STORAGE_LOCATION))
 
-if __name__ == "__main__":
+def make_keras_picklable():
+    def __getstate__(self):
+        model_str = ""
+        with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
+            keras.models.save_model(self, fd.name, overwrite=True)
+            model_str = fd.read()
+        d = { 'model_str': model_str }
+        return d
+    def __setstate__(self, state):
+        with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
+            fd.write(state['model_str'])
+            fd.flush()
+            model = keras.models.load_model(fd.name)
+        self.__dict__ = model.__dict__
+    cls = keras.models.Model
+    cls.__getstate__ = __getstate__
+    cls.__setstate__ = __setstate__
 
+
+if __name__ == "__main__":
+    make_keras_picklable()
     X, y, class_names = create_df(CLASSES)
     y = to_categorical(y, num_classes=NUM_CLASSES)
     print("dans le trainer")
