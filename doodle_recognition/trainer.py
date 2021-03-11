@@ -28,15 +28,21 @@ from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, NUM_C
 from doodle_recognition.data import create_df, Preproc_df, create_train_test_val
 from doodle_recognition.model import init_model, evaluate, save_model, upload_model_to_gcp
 
+import types
+import tempfile
+import keras.models
+
 class Trainer(object):
-    def __init__(self,X_train, y_train, X_test,y_test):
+    def __init__(self, X_train, y_train, X_test, y_test, X_val, y_val, es):
 
         self.pipeline = None
         self.X_train = X_train
         self.y_train = y_train
         self.X_test = X_test
         self.y_test = y_test
-        #self.es = es
+        self.X_val = X_val
+        self.y_val = y_val
+        self.es = es
         # for MLFlow
         #self.experiment_name = EXPERIMENT_NAME
 
@@ -70,12 +76,16 @@ class Trainer(object):
         print("dans le run")
         print(self.X_train.shape)
         print(self.y_train.shape)
-        self.pipeline.fit(self.X_train, self.y_train)
-                        #   batch_size = 32,
-                        #   epochs=100,
-                        #   validation_data = (self.X_test, self.y_test),
-                        #   callbacks=[self.es]
-                        #   )
+        
+        fit_params = {
+            'model__batch_size' : 32,
+            'model__epochs' : 100,
+            #'model__validation_data' : (self.X_val, self.y_val),
+            'model__validation_split' : 0.05,
+            'model__callbacks' : [self.es]
+        }
+        
+        self.pipeline.fit(self.X_train, self.y_train, **fit_params)
 
     # def evaluate(self, X_val, y_val):
     #     """evaluates the pipeline on df_test and return the RMSE"""
@@ -113,12 +123,14 @@ def make_keras_picklable():
             model_str = fd.read()
         d = { 'model_str': model_str }
         return d
+
     def __setstate__(self, state):
         with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
             fd.write(state['model_str'])
             fd.flush()
             model = keras.models.load_model(fd.name)
         self.__dict__ = model.__dict__
+
     cls = keras.models.Model
     cls.__getstate__ = __getstate__
     cls.__setstate__ = __setstate__
@@ -143,7 +155,9 @@ if __name__ == "__main__":
     print(X_val.shape)
     print(y_val.shape)
 
-    trainer = Trainer(X_train=X_train ,y_train=y_train, X_test=X_test, y_test=y_test)
+    trainer = Trainer(X_train=X_train ,y_train=y_train, 
+                      X_test=X_test, y_test=y_test, 
+                      X_val=X_val, y_val=y_val, es=es)
     print("dans le trainer, apres trainer")
     print(X.shape)
     print(y.shape)
