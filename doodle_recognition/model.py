@@ -19,7 +19,7 @@ import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping
 
 from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, NUM_CLASSES
-from doodle_recognition.data import create_df, Preproc_df, To_Cat, create_train_test_val
+from doodle_recognition.data import create_df, Preproc_df, create_train_test_val
 
 
 def init_model():
@@ -31,8 +31,8 @@ def init_model():
     model.add(layers.MaxPool2D(pool_size=(2,2)))
 
     model.add(layers.Flatten())
-    model.add(layers.Dense(100, activation='relu'))
-    model.add(layers.Dense(100, activation='softmax'))
+    model.add(layers.Dense(10, activation='relu'))
+    model.add(layers.Dense(2, activation='softmax'))
 
     model.summary()
 

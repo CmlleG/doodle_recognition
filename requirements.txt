@@ -4,27 +4,23 @@ setuptools>=26
 twine
 wheel>=0.29
 
-pickle
-
 # data science
-numpy>=1.18.5
-pandas>=1.2.0
+numpy
+pandas
+tensorflow
+# tensorflow.keras.layers
+# tensorflow.keras.utils
+# tensorflow.keras.models
+# tensorflow.keras.callbacks
 scikit-learn
-tensorflow>=2.4.1
-tensorflow.keras.layers
-tensorflow.keras.utils
-tensorflow.keras.models
-sklearn
-tensorflow.keras.callbacks
-scikit-learn >=0.22
-Keras-Preprocessing>=1.1.2
+Keras-Preprocessing
 
 # tests/linter
-black
-coverage
-flake8
-pytest
-yapf
+# black
+# coverage
+# flake8
+# pytest
+# yapf
 
 # API
 gcsfs
@@ -37,5 +33,5 @@ six>=1.14
 joblib
 memoized-property
 termcolor
-requests>=2.25.1
+requests
 

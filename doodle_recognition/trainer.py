@@ -21,15 +21,18 @@ from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.compose import ColumnTransformer
 
 from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, NUM_CLASSES, STORAGE_LOCATION, URL_FOLDER
-from doodle_recognition.data import create_df, Preproc_df, To_Cat, create_train_test_val
+from doodle_recognition.data import create_df, Preproc_df, create_train_test_val
 from doodle_recognition.model import init_model, evaluate, save_model, upload_model_to_gcp
 
 class Trainer(object):
-    def __init__(self,X,y):
+    def __init__(self,X_train, y_train, X_test,y_test):
 
         self.pipeline = None
-        self.X = X
-        self.y = y
+        self.X_train = X_train
+        self.y_train = y_train
+        self.X_test = X_test
+        self.y_test = y_test
+        #self.es = es
         # for MLFlow
         #self.experiment_name = EXPERIMENT_NAME
 
@@ -43,8 +46,8 @@ class Trainer(object):
             ('prepro_X', Preproc_df())])
 
         print("dans set_pipeline")
-        print(self.X.shape)
-        print(self.y.shape)
+        print(self.X_train.shape)
+        print(self.y_train.shape)
 
         # prepro_y = Pipeline([
         #     ('prepro_y', To_Cat())])
@@ -61,18 +64,14 @@ class Trainer(object):
     def run(self):
         self.set_pipeline()
         print("dans le run")
-        print(self.X.shape)
-        print(self.y.shape)
-        self.pipeline.fit(self.X, self.y)
-
-
-    # def run(self, X_train, y_train, X_test, y_test):
-    #     self.pipeline.fit(X_train, y_train,
-    #                       batch_size = 32,
-    #                       epochs=100,
-    #                       validation_data = (X_test, y_test),
-    #                       callbacks=[es]
-    #                       )
+        print(self.X_train.shape)
+        print(self.y_train.shape)
+        self.pipeline.fit(self.X_train, self.y_train)
+                        #   batch_size = 32,
+                        #   epochs=100,
+                        #   validation_data = (self.X_test, self.y_test),
+                        #   callbacks=[self.es]
+                        #   )
 
     # def evaluate(self, X_val, y_val):
     #     """evaluates the pipeline on df_test and return the RMSE"""
@@ -101,26 +100,28 @@ if __name__ == "__main__":
 
     X, y, class_names = create_df(CLASSES)
     y = to_categorical(y, num_classes=NUM_CLASSES)
-    # print("dans le trainer")
-    # print(X.shape)
-    # print(y.shape)
-    # X_train, y_train, X_test, y_test, X_val, y_val = create_train_test_val(X,y)
-    # print('train')
-    # print(X_train.shape)
-    # print(y_train.shape)
-    # print('test')
-    # print(X_test.shape)
-    # print(y_test.shape)
-    # print('val')
-    # print(X_val.shape)
-    # print(y_val.shape)
+    print("dans le trainer")
+    print(X.shape)
+    print(y.shape)
+    es = EarlyStopping(patience=10, verbose=1)
+    X_train, y_train, X_test, y_test, X_val, y_val = create_train_test_val(X,y)
+    print('train')
+    print(X_train.shape)
+    print(y_train.shape)
+    print('test')
+    print(X_test.shape)
+    print(y_test.shape)
+    print('val')
+    print(X_val.shape)
+    print(y_val.shape)
 
-    trainer = Trainer(X=X ,y=y)
-    # print("dans le trainer, apres trainer")
-    # print(X.shape)
-    # print(y.shape)
+    trainer = Trainer(X_train=X_train ,y_train=y_train, X_test=X_test, y_test=y_test)
+    print("dans le trainer, apres trainer")
+    print(X.shape)
+    print(y.shape)
     trainer.run()
     trainer.save_model()
+    trainer.upload_model_to_gcp()
 
 
 

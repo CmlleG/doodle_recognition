@@ -18,7 +18,7 @@ from sklearn.model_selection import train_test_split
 from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, NUM_CLASSES, URL_FOLDER
 
 
-def create_df(CLASSES, max_items_per_class= 80000):
+def create_df(CLASSES, max_items_per_class= 20):
     all_files = []
     url = 'https://storage.googleapis.com/quickdraw_dataset/full/numpy_bitmap/'
     for c in CLASSES:
