@@ -43,7 +43,7 @@ BUCKET_TRAINING_FOLDER = 'trainings'
 
 PYTHON_VERSION=3.7
 FRAMEWORK=scikit-learn
-RUNTIME_VERSION=2.2
+RUNTIME_VERSION=2.4
 ##### Package params  - - - - - - - - - - - - - - - - - - -
 
 PACKAGE_NAME=doodle_recognition
@@ -65,6 +65,8 @@ gcp_submit_training:
 		--python-version=${PYTHON_VERSION} \
 		--runtime-version=${RUNTIME_VERSION} \
 		--region ${REGION} \
+		--scale-tier custom \
+        --master-machine-type n1-highmem-96 \
 		--stream-logs
 
 clean:
