@@ -1,202 +1,111 @@
-import requests
-import io
-import os
+from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, NUM_CLASSES, STORAGE_LOCATION, URL_FOLDER, NUM_CLASSES_TEST, CLASSES_TEST
+from doodle_recognition.data import create_df, create_train_test_val, reshape_X, save_df_to_gcp
+from doodle_recognition.model import init_model, initialize_model, save_model_to_gcp, save_image_to_gcp, save_classification_report_gcp
 
-import numpy as np
-import pandas as pd
-from joblib import dump
-import pickle as pkl
-
-import types
-import tempfile
-import keras.models
-
-from sklearn.pipeline import Pipeline
-from google.cloud import storage
-
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Reshape
 from tensorflow.keras.utils import to_categorical
-
-from tensorflow.keras import layers
-from tensorflow import keras
-import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping
-from sklearn.compose import ColumnTransformer
-
-from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, NUM_CLASSES, STORAGE_LOCATION, URL_FOLDER
-from doodle_recognition.data import create_df, Preproc_df, create_train_test_val
-from doodle_recognition.model import init_model, evaluate, save_model, upload_model_to_gcp
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.metrics import classification_report
 
 class Trainer(object):
-    def __init__(self, X_train, y_train, X_test, y_test, X_val, y_val, es):
-
-        self.pipeline = None
+    def __init__(self, X_train, y_train, X_test, y_test):
+        self.name = None
         self.X_train = X_train
         self.y_train = y_train
         self.X_test = X_test
         self.y_test = y_test
-        self.X_val = X_val
-        self.y_val = y_val
-        self.es = es
-        # for MLFlow
-        #self.experiment_name = EXPERIMENT_NAME
+        self.model = initialize_model ()
 
-    # def set_experiment_name(self, experiment_name):
-    #     '''defines the experiment name for MLFlow'''
-    #     self.experiment_name = experiment_name
+    def fit_model(self):
+        es = EarlyStopping(patience=2, restore_best_weights=True)
 
-    def set_pipeline(self):
-        """defines the pipeline as a class attribute"""
-        prepro_X = Pipeline([
-            ('prepro_X', Preproc_df())])
+        self.history = self.model.fit(self.X_train, self.y_train,
+                                validation_split= 0.10,
+                                epochs=100,
+                                batch_size=32,
+                                verbose=1,
+                                callbacks=[es])
 
-        print("dans set_pipeline")
-        print(self.X_train.shape)
-        print(self.y_train.shape)
+    def evaluate_model(self):
+        # Use history to fetch validation score on last epoch
+        self.score_name =list(self.history.history.keys())[1]
+        self.val_score_name =list(self.history.history.keys())[-1]
+        self.score = round(self.history.history[self.val_score_name][-1]*100,2)
 
-        # prepro_y = Pipeline([
-        #     ('prepro_y', To_Cat())])
+        print(f'{self.score_name} = {self.score}')
 
-        # """   preproc_pipe = ColumnTransformer([
-        #     ('preprocess_X', prepro_X, range(0,784))
-        #     ]) """
+    def get_classification_report(self):
+        # Use history to fetch validation score on last epoch
+        test_predictions = np.argmax(self.history.predict(self.X_test), axis=-1)
+        report = classification_report(self.y_test,test_predictions)
+        print(report)
+        save_classification_report_gcp(report)
 
-        self.pipeline = Pipeline([
-            ('prepro', prepro_X),
-            ('model', init_model())
-        ])
+    def save_fig(self):
+        f, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+        ax1.plot(self.history.history['loss'], label='train')
+        ax1.plot(self.history.history['val_loss'], label='val')
+        # ax1.set_ylim(0., 2.2)
+        ax1.set_title('loss')
+        ax1.legend()
 
-    def run(self):
-        self.set_pipeline()
-        print("dans le run")
-        print(self.X_train.shape)
-        print(self.y_train.shape)
-        
-        fit_params = {
-            'model__batch_size' : 32,
-            'model__epochs' : 100,
-            #'model__validation_data' : (self.X_val, self.y_val),
-            'model__validation_split' : 0.05,
-            'model__callbacks' : [self.es]
-        }
-        
-        self.pipeline.fit(self.X_train, self.y_train, **fit_params)
+        ax2.plot(self.history.history[self.score_name], label=f'train {self.score_name}' )
+        ax2.plot(self.history.history[self.val_score_name], label=f'val {self.score_name}' )
+        # ax2.set_ylim(0.25, 1.)
+        ax2.set_title(self.score_name)
+        ax2.legend()
 
-    # def evaluate(self, X_val, y_val):
-    #     """evaluates the pipeline on df_test and return the RMSE"""
-    #     y_pred = self.pipeline.predict(X_val)
-    #     rmse = np.sqrt(((y_pred - y_val) ** 2).mean())
-    #     return round(rmse, 2)
+        fig_name= f'loss_score_plot{VERSION}.png'
+        fig_path = f"result/{fig_name}"
+        print(f'Saving loss/acc curves at {fig_path}')
+        f.savefig(fig_path)
+        print(f'Exporting figure to GC storage')
+        save_image_to_gcp(fig_name)
 
-    def save_model(self):
-        """Save the model into a .joblib format"""
-        print("model.joblib saved locally")
-        #tf.keras.models.save_model(self.pipeline,'saved_model/my_model',save_format='h5')
-        #self.pipeline.named_steps['model'].model.save('model.h5',save_format='h5')
-        #self.pipeline.named_steps['estimator'].model = None
-        #joblib.dump(self.pipeline, 'model.joblib')
-        #tf.keras.models.save_model(self.pipeline,'saved_model/my_model',save_format='h5')
-        dump(self.pipeline, 'model.joblib')
+    def savemodel(self):
+        file_name = f'model_{VERSION}.h5'
+        self.model.save(file_name)
+        # joblib.dump(self.model, joblib_name)
+        save_model_to_gcp(file_name)
 
-    def upload_model_to_gcp(self):
+    def train(self):
+        # step 3 : train
+        print('fit')
+        self.fit_model()
 
-        client = storage.Client()
+        # step 4 : evaluate perf
+        print('evaluate')
+        self.evaluate_model()
 
-        bucket = client.bucket(BUCKET_NAME)
+        # step 5 : save training loss score
+        print('save fig')
+        #self.save_fig()
 
-        blob = bucket.blob(STORAGE_LOCATION)
+        print('save classification')
+        #self.get_classification_report()
 
-        blob.upload_from_filename('model.joblib')
+        # step 6 : save the trained model
+        print('save model')
+        self.savemodel()
 
-        print("uploaded model.joblib to gcp cloud storage under \n => {}".format(STORAGE_LOCATION))
-
-def make_keras_picklable():
-    def __getstate__(self):
-        model_str = ""
-        with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
-            keras.models.save_model(self, fd.name, overwrite=True)
-            model_str = fd.read()
-        d = { 'model_str': model_str }
-        return d
-
-    def __setstate__(self, state):
-        with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
-            fd.write(state['model_str'])
-            fd.flush()
-            model = keras.models.load_model(fd.name)
-        self.__dict__ = model.__dict__
-
-    cls = keras.models.Model
-    cls.__getstate__ = __getstate__
-    cls.__setstate__ = __setstate__
-
+        print(f'End of {self.name}!')
 
 if __name__ == "__main__":
-    make_keras_picklable()
+
+    VERSION = f'V1_DPoint_NCLass_{NUM_CLASSES}'
+
     X, y, class_names = create_df(CLASSES)
-    y = to_categorical(y, num_classes=NUM_CLASSES)
-    print("dans le trainer")
-    print(X.shape)
-    print(y.shape)
-    es = EarlyStopping(patience=10, verbose=1)
-    X_train, y_train, X_test, y_test, X_val, y_val = create_train_test_val(X,y)
-    print('train')
-    print(X_train.shape)
-    print(y_train.shape)
-    print('test')
-    print(X_test.shape)
-    print(y_test.shape)
-    print('val')
-    print(X_val.shape)
-    print(y_val.shape)
 
-    trainer = Trainer(X_train=X_train ,y_train=y_train, 
-                      X_test=X_test, y_test=y_test, 
-                      X_val=X_val, y_val=y_val, es=es)
-    print("dans le trainer, apres trainer")
-    print(X.shape)
-    print(y.shape)
-    trainer.run()
-    trainer.save_model()
-    trainer.upload_model_to_gcp()
+    X_train, y_train, X_test, y_test = create_train_test_val(X,y)
+    save_df_to_gcp(X_test, y_test, y_train, class_names)
 
+    y_train = to_categorical(y_train, num_classes=NUM_CLASSES)
+    y_test = to_categorical(y_test, num_classes=NUM_CLASSES)
+    X_train = reshape_X(X_train)
+    X_test = reshape_X(X_test)
 
+    trainer = Trainer(X_train=X_train ,y_train=y_train,
+                      X_test=X_test, y_test=y_test)
 
-
-
-
-
-
-
-    # Get and clean data
-    #es = EarlyStopping(patience=10, verbose=0)
-
-
-
-    #X = preproc_df(X)
-    #y = to_cat(y, NUM_CLASSES)
-
-
-    #model = init_model(X_train=X_train, y_train=y_train)
-    #print(model)
-    #model = model.fit(X_train, y_train,
-                      #batch_size = 32,
-                      #epochs=1,
-                      #validation_data = (X_test, y_test),
-                      #callbacks=[es]
-                      #)
-
-
-
-    #model.save_model()
-    #upload_model_to_gcp(model)
-    #trainer = Trainer(X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test, X_val=X_val, y_val=y_val)
-    #trainer.run(X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test)
-
-
-    # rmse = trainer.evaluate(X_val=X_val, y_val=y_val)
-    # print(f"rmse: {rmse}")
-
-    # trainer.save_model()
-    # trainer.upload_model_to_gcp()
+    trainer.train()

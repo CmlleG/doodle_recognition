@@ -5,15 +5,18 @@ twine
 wheel>=0.29
 
 # data science
-numpy
-pandas
-tensorflow
+numpy==1.19.4
+pandas== 1.1.5
+tensorflow==2.4.1
+tensorflow-addons==0.12.1
 # tensorflow.keras.layers
 # tensorflow.keras.utils
 # tensorflow.keras.models
 # tensorflow.keras.callbacks
-scikit-learn
-Keras
+scikit-learn==0.24.0
+Keras==2.4.3
+# h5py==2.10.0
+Keras-Preprocessing==1.1.2
 
 # tests/linter
 # black
@@ -30,7 +33,7 @@ s3fs
 
 # utilities
 six>=1.14
-joblib
+joblib==1.0.0
 memoized-property
 termcolor
 requests
