@@ -18,11 +18,11 @@ class Trainer(object):
         self.model = initialize_model ()
 
     def fit_model(self):
-        es = EarlyStopping(patience=5, restore_best_weights=True)
+        es = EarlyStopping(patience=2, restore_best_weights=True)
 
         self.history = self.model.fit(self.X_train, self.y_train,
                                 validation_split= 0.10,
-                                epochs=80,
+                                epochs=100,
                                 batch_size=32,
                                 verbose=1,
                                 callbacks=[es])

@@ -16,10 +16,10 @@ from tensorflow.keras.utils import to_categorical
 
 from sklearn.model_selection import train_test_split
 
-from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, NUM_CLASSES, URL_FOLDER, NUM_CLASSES_TEST, CLASSES_TEST, STORAGE_LOCATION,BUCKET_FOLDER_R, DATA_FOLDER, VERSION
+from doodle_recognition.params import BUCKET_NAME, BUCKET_FOLDER, CLASSES, CATEGORY, NUM_CLASSES, URL_FOLDER, NUM_CLASSES_TEST, CLASSES_TEST, STORAGE_LOCATION,BUCKET_FOLDER_R, DATA_FOLDER, VERSION
 
 
-def create_df(CLASSES, max_items_per_class= 60000):
+def create_df(CLASSES, max_items_per_class= 30000):
 
     print("-------Start CREATE_DF----------------------------------------")
     all_files = []
@@ -86,10 +86,10 @@ def save_df_to_gcp(X_test, y_test, y_train, class_names):
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
     #blob = bucket.blob(STORAGE_LOCATION)
-    bucket.blob(f"data/X_test_{VERSION}.csv").upload_from_string(X_test_df.to_csv(), 'text/csv')
-    bucket.blob(f"data/y_train_{VERSION}.csv").upload_from_string(y_train_df.to_csv(), 'text/csv')
-    bucket.blob(f"data/y_val_{VERSION}.csv").upload_from_string(y_test_df.to_csv(), 'text/csv')
-    bucket.blob(f"data/class_names_{VERSION}.csv").upload_from_string(class_names_df.to_csv(), 'text/csv')
+    bucket.blob(f"data/X_test_{VERSION}_{CATEGORY}.csv").upload_from_string(X_test_df.to_csv(), 'text/csv')
+    bucket.blob(f"data/y_train_{VERSION}_{CATEGORY}.csv").upload_from_string(y_train_df.to_csv(), 'text/csv')
+    bucket.blob(f"data/y_test_{VERSION}_{CATEGORY}.csv").upload_from_string(y_test_df.to_csv(), 'text/csv')
+    bucket.blob(f"data/class_names_{VERSION}_{CATEGORY}.csv").upload_from_string(class_names_df.to_csv(), 'text/csv')
 
     #blob.upload_from_filename(y_train_df)
     #blob.upload_from_filename(X_test_df)

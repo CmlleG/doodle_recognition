@@ -66,7 +66,7 @@ gcp_submit_training:
 		--runtime-version=${RUNTIME_VERSION} \
 		--region ${REGION} \
 		--scale-tier custom \
-        --master-machine-type n1-highmem-96 \
+        --master-machine-type n1-highmem-16 \
 		--stream-logs
 
 clean:

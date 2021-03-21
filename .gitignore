@@ -6,3 +6,4 @@ raw_data/
 **/__pycache__/
 .env
 Camera.py
+trainer_old.py
